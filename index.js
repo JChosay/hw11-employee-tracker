@@ -1,6 +1,7 @@
 const { Console } = require('console');
 const inquirer = require('inquirer');
 const mysql = require('mysql');
+const cTable = require('console.table');
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -11,6 +12,19 @@ const connection = mysql.createConnection({
   });
   
 
+console.log('███████╗███╗   ███╗██████╗ ██╗      ██████╗ ██╗   ██╗███████╗███████╗');
+console.log('██╔════╝████╗ ████║██╔══██╗██║     ██╔═══██╗╚██╗ ██╔╝██╔════╝██╔════╝');
+console.log('█████╗  ██╔████╔██║██████╔╝██║     ██║   ██║ ╚████╔╝ █████╗  █████╗  ');
+console.log('██╔══╝  ██║╚██╔╝██║██╔═══╝ ██║     ██║   ██║  ╚██╔╝  ██╔══╝  ██╔══╝  ');
+console.log('███████╗██║ ╚═╝ ██║██║     ███████╗╚██████╔╝   ██║   ███████╗███████╗');
+console.log('╚══════╝╚═╝     ╚═╝╚═╝     ╚══════╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝');
+console.log('');
+console.log('████████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗ ');
+console.log('╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗');
+console.log('   ██║   ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝');
+console.log('   ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗');
+console.log('   ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║');
+console.log('   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝');
 console.log("Welcome to YerTEAM CMS, a product of FRUOsoft!")
 
 //TODO: this code functions; use it to auto-populate list choices from the database.
@@ -44,49 +58,91 @@ function mainPrompt(){
             message: 'What action would you like to take?',
             type: 'list',
             name: 'prompt',
-            choices: ['View All Employees','View ALl Employees by Department','View ALl Employees by Manager','Add Employee','Update Employee Role','Update Employee Manager','Quit'],
+            choices: ['View All Employees','View All Employees by Department','View All Employees by Manager','Add Employee','Update Employee Role','Update Employee Manager','Quit'],
         }
     ])
-    .then((answer) => {
-        if (answer === "View ALl Employees"){
-            AllEmployees();
-        }else if (answer === "View All Employees by Department"){
+    .then((answers) => {
+        if (answers.prompt === "View All Employees"){
+            queryAllEmployees();
+        }else if (answers.prompt === "View All Employees by Department"){
             employeesByDept();
-        }else if (answer === "View ALl Employees by Manager"){
+        }else if (answers.prompt === "View All Employees by Manager"){
             employeesByManager();
-        }else if (answer === "Add Employee"){
+        }else if (answers.prompt === "Add Employee"){
             addEmployee();
-        }else if (answer === "Update Employee Role"){
+        }else if (answers.prompt === "Update Employee Role"){
             updateRole();
-        }else if (answer === "Update Employee Manager"){
+        }else if (answers.prompt === "Update Employee Manager"){
             updateManager();
-        }else if (answer === "Quit"){
-            Console.log("Thanks for using YerTEAM CMS.")
-            askForInternInfo();
+        }else if (answers.prompt === "Quit"){
+            console.log("Thanks for using YerTEAM CMS.");
         }
     })
 }
 
 mainPrompt();
 
-AllEmployees()
-
-function employeesByDept(){
-
-}
-
-function employeesByManager(){
+// function AllEmployees(){
+//     console.log("AllEmployees selected");
+//      const mainPrompt = () => {
     
-}
+//         connection.query('SELECT * FROM position', (err, results) => {
+//          if (err) throw err;
 
-function addEmployee(){
-    
-}
+//          inquirer.prompt([
+//              {
+//                  message: 'What action would you like to take?',
+//                 type: 'list',
+//                  name: 'prompt',
+//                  choices () {
+//                      const actionArray = [];
+//                      results.forEach(({title}) => {
+//                          actionArray.push(title);
+//                      });
+//                      return actionArray;   
+//                  },
+//              }
+//          ])
+//          .then((answer) => {
+//              let chosenAction;
+//          })
+//      })
+//  }
 
-function updateRole(){
-    
-}
+const queryAllEmployees = () => {
+    connection.query('SELECT * FROM employee', (err, res) => {
+        if (err) throw err;
+        res.forEach(({ id, first_name, last_name, role_id, manager_id}) => { 
+        });
+        
+        console.log('----------------------------------------------');
+        console.log("Viewing All Employees:")
+        console.log('----------------------------------------------');
+        console.table(res);
+        console.log('----------------------------------------------');
+        mainPrompt();
+    });
+};
 
-function updateManager(){
-    
-}
+
+                                                                     
+
+// function employeesByDept(){
+//     console.log("EmployeesByDept selected");
+// }
+
+// function employeesByManager(){  
+//     console.log("EmployeesByManager selected");
+// }
+
+// function addEmployee(){
+//     console.log("AddEmployee selected");
+// }
+
+// function updateRole(){
+//     console.log("updateRole selected");
+// }
+
+// function updateManager(){
+//     console.log("updateManager selected");
+// }

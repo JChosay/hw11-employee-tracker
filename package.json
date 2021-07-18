@@ -1,0 +1,27 @@
+{
+  "name": "hw11-employee-tracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "inquirer": "^8.1.2",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JChosay/hw11-employee-tracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JChosay/hw11-employee-tracker/issues"
+  },
+  "homepage": "https://github.com/JChosay/hw11-employee-tracker#readme"
+}
