@@ -45,30 +45,6 @@ console.log('-------------------------------------------------------------------
 console.log('----------------------------------------------------------------------');
 console.log("Welcome to YerTEAM CMS, a product of FRUOsoft!")
 
-//TODO: this code functions; use it to auto-populate list choices from the database.
-//! const mainPrompt = () => {
-//!    connection.query('SELECT * FROM position', (err, results) => {
-//!         if (err) throw err;
-
-//!         inquirer.prompt([
-//!             {
-//!!                 message: 'What action would you like to take?',
-// !                type: 'list',
-//!                 name: 'prompt',
-//!                 choices () {
-//!                     const actionArray = [];
-//!                     results.forEach(({title}) => {
-//!                         actionArray.push(title);
-//!                     });
-//!                     return actionArray;   
-//!                 },
-//!             }
-//!         ])
-//!         .then((answer) => {
-//!             let chosenAction;
-//!         })
-//!     })
-//! }
 
 function mainPrompt(){
     inquirer.prompt([
@@ -110,7 +86,7 @@ function mainPrompt(){
 mainPrompt();
 
 const queryAllEmployees = () => {
-    connection.query('SELECT employee.id, employee.first_name, employee.last_name, position.title, position.salary, employee.manager_id FROM (employee INNER JOIN position ON employee.role_id = position.id)', (err, res) => {
+    connection.query('SELECT employee.id, employee.first_name, employee.last_name, position.title, department.dept_name, position.salary, employee.manager_id FROM position JOIN employee ON employee.role_id = position.id Join department ON position.department_id = department.id;', (err, res) => {
         if (err) throw err;
         res.forEach(({ id, first_name, last_name, role_id, manager_id}) => { 
         });
@@ -142,12 +118,25 @@ const employeesByDept = () => {
                 }
             },
         ])
+
         .then((answer) => {
-            let chozeDept = answer;
-            console.log(chozeDept);
+            let chozeDept = answer.department;
+
+            connection.query(`SELECT employee.id, employee.first_name, employee.last_name, position.title, position.salary, employee.manager_id FROM position JOIN employee ON employee.role_id = position.id Join department ON position.department_id = department.id WHERE department.dept_name = '${chozeDept}'`, (err, res) => {
+                if (err) throw err;
+                res.forEach(({ id, first_name, last_name, title, salary, manager_id}) => { 
+                });
+
+                console.log('----------------------------------------------');
+                console.log(`"Viewing All Employees in the ${chozeDept} Department:"`)
+                console.log('----------------------------------------------');
+                console.table(res);
+                console.log('----------------------------------------------');
+                mainPrompt();
+            });
         });
     });
-};
+}
 
 
             
