@@ -1,18 +1,29 @@
 const { Console } = require('console');
 const inquirer = require('inquirer');
-const mysql = require('mysql');
+const mysql2 = require('mysql2');
 const cTable = require('console.table');
 const { Sequelize } = require('sequelize');
 
-// const connection = mysql.createConnection({
-//     host: 'localhost',
-//     port: 3306,
-//     user: 'root',
-//     password: 'jj1234',
-//     database: 'cms_db',
-//   });
+const connection = mysql2.createConnection({
+    host: 'localhost',
+    port: 3306,
+    user: 'root',
+    password: 'jj1234',
+    database: 'cms_db',
+  });
 
-cons
+// const sequelize = new Sequelize(
+//     process.env.DB_NAME,
+//     process.env.DB_USER,
+//     process.env.DB_PASSWORD,
+//   {
+//     host: 'localhost',
+//     dialect: 'mysql',
+//     port: 3306
+//   }
+// );
+
+// module.exports = sequelize;
 
 //! Sweet banner, right? See: https://manytools.org/hacker-tools/ascii-banner/
 
@@ -98,45 +109,50 @@ function mainPrompt(){
 
 mainPrompt();
 
-//! This works; but, it doesn't pull in the right fields to satisfy the reqs.
-// const queryAllEmployees = () => {
-//     connection.query('SELECT * FROM employee', (err, res) => {
-//         if (err) throw err;
-//         res.forEach(({ id, first_name, last_name, role_id, manager_id}) => { 
-//         });
-        
-//         console.log('----------------------------------------------');
-//         console.log("Viewing All Employees:")
-//         console.log('----------------------------------------------');
-//         console.table(res);
-//         console.log('----------------------------------------------');
-//         mainPrompt();
-//     });
-// };
-
 const queryAllEmployees = () => {
-    let query = 'SELECT employee.id, employee.first_name, employee.last_name, position.title, position.salary, employee.manager_id';
-    query += 'FROM (employee INNER JOIN position ON employee.role_id = position.id)';
-
-    connection.query(query, (err, res) => {
+    connection.query('SELECT employee.id, employee.first_name, employee.last_name, position.title, position.salary, employee.manager_id FROM (employee INNER JOIN position ON employee.role_id = position.id)', (err, res) => {
         if (err) throw err;
-        res.ForEach(({id, first_name, last_name, title, salary, manager_id}) => {
-        })
-
+        res.forEach(({ id, first_name, last_name, role_id, manager_id}) => { 
+        });
+        
         console.log('----------------------------------------------');
         console.log("Viewing All Employees:")
         console.log('----------------------------------------------');
         console.table(res);
         console.log('----------------------------------------------');
         mainPrompt();
-    })
+    });
 };
 
-                                            
+const employeesByDept = () => {
+    connection.query('SELECT * FROM department', (err, results) => {
 
-// function employeesByDept(){
-//     console.log("EmployeesByDept selected");
-// }
+        inquirer.prompt([
+            {
+                message: "Which department's employees would you like to view?",
+                type: 'list',
+                name: 'department',
+                choices () {
+                    const deptArray = [];
+                    
+                    results.forEach(({dept_name}) => {
+                        deptArray.push(dept_name);
+                    });
+                    return deptArray;
+                }
+            },
+        ])
+        .then((answer) => {
+            let chozeDept = answer;
+            console.log(chozeDept);
+        });
+    });
+};
+
+
+            
+        
+
 
 // function employeesByManager(){  
 //     console.log("EmployeesByManager selected");
