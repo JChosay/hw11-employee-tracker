@@ -67,7 +67,7 @@ function mainPrompt(){
         }else if (answers.prompt === "View All Employees by Manager"){
             employeesByManager();
         }else if (answers.prompt === "Add Employee"){
-            addEmployee();
+            addEmployeeSwitch();
         }else if (answers.prompt === "Update Employee Role"){
             updateRole();
         }else if (answers.prompt === "Update Employee Manager"){
@@ -168,21 +168,22 @@ const employeesByManager = () => {
 
     .then((answer) => {
         
+        //! starts by grabbing the whole answer, where "[index number]: [Manager's first name]"
         let chozeMgr = answer.manager;
-        console.log (answer.manager);
+        //! Next grabs just the number from that string, which it can pass to the select query...
         let mgrInd = parseInt(chozeMgr, 10);
-        console.log (mgrInd);
+        //! then, parses out that same index value from the original answer string
         let choiceTrim1 = chozeMgr.replace(mgrInd,"");
+        //! finally, trims out the ": " to leave only the manager's first name
         let choiceTrim2 = choiceTrim1.replace(": ","");
-        console.log("ChoiceTrim1: "+choiceTrim1);
-
+        
             connection.query(`SELECT employee.id, employee.first_name, employee.last_name, position.title, department.dept_name, position.salary FROM position JOIN employee ON employee.role_id = position.id Join department ON position.department_id = department.id WHERE employee.manager_id = '${mgrInd}'`, (err, res) => {
                 if (err) throw err;
                 res.forEach(({ id, first_name, last_name, title, salary, manager_id}) => { 
                 });
 
                 console.log('----------------------------------------------');
-                console.log(`Viewing All of ${choiceTrim2}'s Subordinates:`)
+                console.log(`Viewing All of ${choiceTrim2}'s Subordinates:`);
                 console.log('----------------------------------------------');
                 console.table(res);
                 console.log('----------------------------------------------');
@@ -192,14 +193,135 @@ const employeesByManager = () => {
     });
 }
 
-// function addEmployee(){
-//     console.log("AddEmployee selected");
-// }
 
-// function updateRole(){
-//     console.log("updateRole selected");
-// }
+const addEmployeeSwitch = () => {
+    inquirer.prompt([
+        {
+            message: "Will the new employee be a manager?",
+            type: 'list',
+            choices: ['Yes','No'],
+            name: 'switch',
+        }
+    ])
+    .then((answers) => {
+        if (answers.switch === "Yes"){
+            addManager();
+        }else{
+            addEmployee();
+        }
+    });
+}
 
-// function updateManager(){
-//     console.log("updateManager selected");
-// }
+
+const addEmployee = () => {
+    connection.query('SELECT position.id, position.title, employee.first_name FROM position JOIN employee ON employee.role_id = position.id', (err, results) => {
+
+    inquirer.prompt([
+        
+        {
+            message: "What is the new employee's first name?",
+            type: 'input',
+            name: 'newFirst',
+        },
+        {
+            message: "What is the new employee's last name?",
+            type: 'input',
+            name: 'newLast',
+        },
+        {
+            message: "What will be this new employee's role?",
+            type: 'list',
+            name: 'newRole',
+            choices () {
+                const roleArrayRaw = [];
+                
+                results.forEach(({id, title}) => {
+                    roleArrayRaw.push(id+": "+title);
+                });
+
+                let roleArray = parseInt(roleArrayRaw, 10);
+                return roleArrayRaw;
+            }
+        },
+        {
+            message: "To which manager will this employee be reporting?",
+            type: 'list',
+            name: 'newMgr',
+            choices () {
+                const mgrArrayRaw = [];
+                
+                results.forEach(({id, first_name}) => {
+                    mgrArrayRaw.push(id+": "+first_name);
+                });
+
+                const mgrArray = parseInt(mgrArrayRaw, 10);
+                return mgrArrayRaw;
+            }
+        },
+    ])
+
+    .then((answers) => {
+        
+        let newRoleRaw = answers.newRole;
+        let newRole = parseInt(newRoleRaw, 10);
+        
+        let newMgrRaw = answers.newMgr;
+        let newMgr = parseInt(newMgrRaw, 10);
+
+        connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answers.newFirst}", "${answers.newLast}", "${newRole}", "${newMgr}")`, (err, results) => {
+            console.log(`${answers.newFirst} has been added to the database.`)
+            mainPrompt();
+        });
+    })
+    
+})    
+}
+
+const addManager = () => {
+    connection.query('SELECT position.id, position.title, employee.first_name FROM position JOIN employee ON employee.role_id = position.id', (err, results) => {
+
+    inquirer.prompt([
+        
+        {
+            message: "What is the new Manager's first name?",
+            type: 'input',
+            name: 'newFirst',
+        },
+        {
+            message: "What is the new Manager's last name?",
+            type: 'input',
+            name: 'newLast',
+        },
+        {
+            message: "What will be this new Manager's role?",
+            type: 'list',
+            name: 'newRole',
+            choices () {
+                const roleArrayRaw = [];
+                
+                results.forEach(({id, title}) => {
+                    roleArrayRaw.push(id+": "+title);
+                });
+
+                let roleArray = parseInt(roleArrayRaw, 10);
+                return roleArrayRaw;
+            }
+        },
+    ])
+
+    .then((answers) => {
+        
+        let newRoleRaw = answers.newRole;
+        let newRole = parseInt(newRoleRaw, 10);
+        
+        let newMgrRaw = answers.newMgr;
+        let newMgr = parseInt(newMgrRaw, 10);
+
+        connection.query(`INSERT INTO employee (first_name, last_name, role_id) VALUES ("${answers.newFirst}", "${answers.newLast}", "${newRole}")`, (err, results) => {
+            console.log(`${answers.newFirst} has been added to the database.`)
+            mainPrompt();
+        });
+    })
+    
+})    
+}
