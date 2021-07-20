@@ -4,6 +4,9 @@ const mysql2 = require('mysql2');
 const cTable = require('console.table');
 const { Sequelize } = require('sequelize');
 
+var mgrSelectID = [];
+
+
 const connection = mysql2.createConnection({
     host: 'localhost',
     port: 3306,
@@ -47,6 +50,7 @@ console.log("Welcome to YerTEAM CMS, a product of FRUOsoft!")
 
 
 function mainPrompt(){
+
     inquirer.prompt([
         {
             message: 'What action would you like to take?',
@@ -137,15 +141,56 @@ const employeesByDept = () => {
         });
     });
 }
+     
 
+const employeesByManager = () => {
+    mgrSelectID = [];
 
-            
+    connection.query('SELECT id, first_name, last_name FROM employee WHERE manager_id IS NULL', (err, results) => {
+
+    inquirer.prompt([
+        {
+            message: "Which manager's subordinates would you like to view?",
+            type: 'list',
+            name: 'manager',
+            choices () {
+                const mgrArray = [];
+                
+                
+                results.forEach(({id, first_name}) => {
+                    mgrArray.push(id+": "+first_name);
+                });
+
+                return mgrArray;
+            }
+        },
+    ])
+
+    .then((answer) => {
         
+        let chozeMgr = answer.manager;
+        console.log (answer.manager);
+        let mgrInd = parseInt(chozeMgr, 10);
+        console.log (mgrInd);
+        let choiceTrim1 = chozeMgr.replace(mgrInd,"");
+        let choiceTrim2 = choiceTrim1.replace(": ","");
+        console.log("ChoiceTrim1: "+choiceTrim1);
 
+            connection.query(`SELECT employee.id, employee.first_name, employee.last_name, position.title, department.dept_name, position.salary FROM position JOIN employee ON employee.role_id = position.id Join department ON position.department_id = department.id WHERE employee.manager_id = '${mgrInd}'`, (err, res) => {
+                if (err) throw err;
+                res.forEach(({ id, first_name, last_name, title, salary, manager_id}) => { 
+                });
 
-// function employeesByManager(){  
-//     console.log("EmployeesByManager selected");
-// }
+                console.log('----------------------------------------------');
+                console.log(`Viewing All of ${choiceTrim2}'s Subordinates:`)
+                console.log('----------------------------------------------');
+                console.table(res);
+                console.log('----------------------------------------------');
+                mainPrompt();
+            });
+        });
+    });
+}
 
 // function addEmployee(){
 //     console.log("AddEmployee selected");
