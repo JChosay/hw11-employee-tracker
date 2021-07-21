@@ -418,11 +418,16 @@ const updateRoleAssign = () => {
             ])
             .then((answer) => {
                 
-                let roleAssign = answer;
-                let assignIndex = parseInt(roleAssign,10);
+                let roleAssign = answer.roleAssign;
+                console.log(roleAssign);
+                var assignIndex = parseInt(roleAssign, 10);
+                console.log(assignIndex);
 
                 connection.query(`UPDATE employee SET role_id='${assignIndex}' WHERE id='${roleInd}'`, (err, results) => {
-                    console.log('Employee role updated.');
+                    
+                    console.log('-------------------------------------------');
+                    console.log(`${roleName}'s role has been updated.`);
+                    console.log('-------------------------------------------');
                     mainPrompt();
                 
             });    
