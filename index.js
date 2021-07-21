@@ -3,6 +3,7 @@ const inquirer = require('inquirer');
 const mysql2 = require('mysql2');
 const cTable = require('console.table');
 const { Sequelize } = require('sequelize');
+var rolePick = "";
 
 var mgrSelectID = [];
 
@@ -14,19 +15,6 @@ const connection = mysql2.createConnection({
     password: 'jj1234',
     database: 'cms_db',
   });
-
-// const sequelize = new Sequelize(
-//     process.env.DB_NAME,
-//     process.env.DB_USER,
-//     process.env.DB_PASSWORD,
-//   {
-//     host: 'localhost',
-//     dialect: 'mysql',
-//     port: 3306
-//   }
-// );
-
-// module.exports = sequelize;
 
 //! Sweet banner, right? See: https://manytools.org/hacker-tools/ascii-banner/
 
@@ -56,7 +44,7 @@ function mainPrompt(){
             message: 'What action would you like to take?',
             type: 'list',
             name: 'prompt',
-            choices: ['View All Employees','View All Employees by Department','View All Employees by Manager','Add Employee','Update Employee Role','Update Employee Manager','Quit'],
+            choices: ['View All Employees','View All Employees by Department','View All Employees by Manager','Add Employee', 'Remove Employee','Update Employee Role','Update Employee Manager','Quit'],
         }
     ])
     .then((answers) => {
@@ -68,6 +56,8 @@ function mainPrompt(){
             employeesByManager();
         }else if (answers.prompt === "Add Employee"){
             addEmployeeSwitch();
+        }else if (answers.prompt === "Remove Employee"){
+            removeEmployee();
         }else if (answers.prompt === "Update Employee Role"){
             updateRole();
         }else if (answers.prompt === "Update Employee Manager"){
@@ -324,4 +314,104 @@ const addManager = () => {
     })
     
 })    
+}
+
+const removeEmployee = () => {
+
+    connection.query('SELECT id, first_name, last_name FROM employee', (err, results) => {
+
+    inquirer.prompt([
+        {
+            message: "Which employee would you like to remove from the database?",
+            type: 'list',
+            name: 'removePick',
+            choices () {
+                const pickArray = [];
+                
+                results.forEach(({id, first_name, last_name}) => {
+                    pickArray.push(id+": "+first_name+" "+last_name);
+                });
+
+                return pickArray;
+            }
+        },
+    ])
+
+    .then((answer) => {
+        
+        let removePick = answer.removePick;
+        let removeInd = parseInt(removePick, 10);
+        let removeTrim = removePick.replace(removeInd, "");
+        let removeName = removeTrim.replace(": ","");          
+        
+            connection.query(`DELETE FROM cms_db.employee WHERE id='${removeInd}'`, (err, res) => {
+                if (err) throw err;
+                console.log('---------------------------------------------------');
+                console.log(`${removeName} has been deleted from the database.`); 
+                console.log('---------------------------------------------------');
+                mainPrompt();
+            });
+        });
+    });
+}
+
+const updateRole = () => {
+
+    connection.query('SELECT employee.id, employee.first_name, employee.last_name, position.title FROM employee JOIN position ON employee.role_id=position.id', (err, results) => {
+
+        console.table("----------------------------------------");
+        console.table(results);
+
+    inquirer.prompt([
+        {
+            message: "Which employee's role would you like to update?",
+            type: 'list',
+            name: 'rolePick',
+            choices () {
+                const pickArray = [];
+                
+                results.forEach(({id, first_name, last_name}) => {
+                    pickArray.push(id+": "+first_name+" "+last_name);
+                });
+
+                return pickArray;
+            }
+        },
+    ])
+
+    .then((answer) => {
+        
+        rolePick = answer.rolePick;
+        updateRoleAssign();
+                
+        });
+    });
+}
+
+const updateRoleAssign = () => {    
+    connection.query('SELECT * FROM position', (err, results) => {
+        
+        console.log("Entering new function");
+        
+        let roleInd = parseInt(rolePick, 10);
+        let roleTrim = rolePick.replace(roleInd,"");
+        let roleName = roleTrim.replace(": ","");  
+    
+        inquirer.prompt([
+            {
+                message: `What role would you like to assign ${roleName}?`,
+                type: 'list',
+                name: 'roleAssign',
+                choices () {
+                    const roleArray = [];
+                    
+                    results.forEach(({id, title}) => {
+                        roleArray.push(id+": "+title);
+                    });
+    
+                    return roleArray;
+                }
+            }
+        ])
+    })    
 }
