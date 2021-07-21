@@ -39,6 +39,9 @@ console.log("Welcome to YerTEAM CMS, a product of FRUOsoft!")
 
 function mainPrompt(){
 
+    rolePick = "";
+    mgrSelectID = [];
+
     inquirer.prompt([
         {
             message: 'What action would you like to take?',
@@ -391,27 +394,38 @@ const updateRole = () => {
 const updateRoleAssign = () => {    
     connection.query('SELECT * FROM position', (err, results) => {
         
-        console.log("Entering new function");
+            console.log("Entering new function");
+            
+            let roleInd = parseInt(rolePick, 10);
+            let roleTrim = rolePick.replace(roleInd,"");
+            let roleName = roleTrim.replace(": ","");  
         
-        let roleInd = parseInt(rolePick, 10);
-        let roleTrim = rolePick.replace(roleInd,"");
-        let roleName = roleTrim.replace(": ","");  
-    
-        inquirer.prompt([
-            {
-                message: `What role would you like to assign ${roleName}?`,
-                type: 'list',
-                name: 'roleAssign',
-                choices () {
-                    const roleArray = [];
-                    
-                    results.forEach(({id, title}) => {
-                        roleArray.push(id+": "+title);
-                    });
-    
-                    return roleArray;
-                }
-            }
-        ])
-    })    
+            inquirer.prompt([
+                {
+                    message: `What role would you like to assign ${roleName}?`,
+                    type: 'list',
+                    name: 'roleAssign',
+                    choices () {
+                        const roleArray = [];
+                        
+                        results.forEach(({id, title}) => {
+                            roleArray.push(id+": "+title);
+                        });
+        
+                        return roleArray;
+                    }
+                },
+            ])
+            .then((answer) => {
+                
+                let roleAssign = answer;
+                let assignIndex = parseInt(roleAssign,10);
+
+                connection.query(`UPDATE employee SET role_id='${assignIndex}' WHERE id='${roleInd}'`, (err, results) => {
+                    console.log('Employee role updated.');
+                    mainPrompt();
+                
+            });    
+        });
+    })
 }
