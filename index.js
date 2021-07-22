@@ -4,6 +4,7 @@ const mysql2 = require('mysql2');
 const cTable = require('console.table');
 const { Sequelize } = require('sequelize');
 var rolePick = "";
+var mgrAssign = "";
 
 var mgrSelectID = [];
 
@@ -18,28 +19,29 @@ const connection = mysql2.createConnection({
 
 //! Sweet banner, right? See: https://manytools.org/hacker-tools/ascii-banner/
 
-console.log('----------------------------------------------------------------------');
-console.log('----------------------------------------------------------------------');
-console.log('███████╗███╗   ███╗██████╗ ██╗      ██████╗ ██╗   ██╗███████╗███████╗');
-console.log('██╔════╝████╗ ████║██╔══██╗██║     ██╔═══██╗╚██╗ ██╔╝██╔════╝██╔════╝');
-console.log('█████╗  ██╔████╔██║██████╔╝██║     ██║   ██║ ╚████╔╝ █████╗  █████╗  ');
-console.log('██╔══╝  ██║╚██╔╝██║██╔═══╝ ██║     ██║   ██║  ╚██╔╝  ██╔══╝  ██╔══╝  ');
-console.log('███████╗██║ ╚═╝ ██║██║     ███████╗╚██████╔╝   ██║   ███████╗███████╗');
-console.log('╚══════╝╚═╝     ╚═╝╚═╝     ╚══════╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝');
-console.log('     ████████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗ ');
-console.log('     ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗');
-console.log('        ██║   ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝');
-console.log('        ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗');
-console.log('        ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║');
-console.log('        ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝');
-console.log('----------------------------------------------------------------------');
-console.log('----------------------------------------------------------------------');
+console.log('|-----------------------------------------------------------------------|');
+console.log('|                                                                       |');
+console.log('| ███████╗███╗   ███╗██████╗ ██╗      ██████╗ ██╗   ██╗███████╗███████╗ |');
+console.log('| ██╔════╝████╗ ████║██╔══██╗██║     ██╔═══██╗╚██╗ ██╔╝██╔════╝██╔════╝ |');
+console.log('| █████╗  ██╔████╔██║██████╔╝██║     ██║   ██║ ╚████╔╝ █████╗  █████╗   |');
+console.log('| ██╔══╝  ██║╚██╔╝██║██╔═══╝ ██║     ██║   ██║  ╚██╔╝  ██╔══╝  ██╔══╝   |');
+console.log('| ███████╗██║ ╚═╝ ██║██║     ███████╗╚██████╔╝   ██║   ███████╗███████╗ |');
+console.log('| ╚══════╝╚═╝     ╚═╝╚═╝     ╚══════╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝ |');
+console.log('|     ████████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗          |');
+console.log('|     ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗         |');
+console.log('|        ██║   ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝         |');
+console.log('|        ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗         |');
+console.log('|        ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║         |');
+console.log('|        ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝         |');
+console.log('|                                                                       |');
+console.log('|-----------------------------------------------------------------------|');
 console.log("Welcome to YerTEAM CMS, a product of FRUOsoft!")
 
 
 function mainPrompt(){
 
     rolePick = "";
+    mgrAssign = "";
     mgrSelectID = [];
 
     inquirer.prompt([
@@ -47,7 +49,7 @@ function mainPrompt(){
             message: 'What action would you like to take?',
             type: 'list',
             name: 'prompt',
-            choices: ['View All Employees','View All Employees by Department','View All Employees by Manager','Add Employee', 'Remove Employee','Update Employee Role','Update Employee Manager','Quit'],
+            choices: ['View All Employees','View All Employees by Department','View All Employees by Manager','Add Employee', 'Remove Employee','Update Employee Role','Update Employee Manager', 'Add or Remove a Department', 'Add or remove a role', 'Quit'],
         }
     ])
     .then((answers) => {
@@ -65,6 +67,10 @@ function mainPrompt(){
             updateRole();
         }else if (answers.prompt === "Update Employee Manager"){
             updateManager();
+        }else if (answers.prompt === "Add or Remove a Department"){
+            updateDept();
+        }else if (answers.prompt === "Add or remove a role"){
+            updateNewRole();
         }else if (answers.prompt === "Quit"){
             console.log('----------------------------------------------------------------------');
             console.log('     ██████╗  ██████╗  ██████╗ ██████╗ ██████╗ ██╗   ██╗███████╗██╗');
@@ -385,16 +391,13 @@ const updateRole = () => {
     .then((answer) => {
         
         rolePick = answer.rolePick;
-        updateRoleAssign();
-                
+        updateRoleAssign();  
         });
     });
 }
 
 const updateRoleAssign = () => {    
     connection.query('SELECT * FROM position', (err, results) => {
-        
-            console.log("Entering new function");
             
             let roleInd = parseInt(rolePick, 10);
             let roleTrim = rolePick.replace(roleInd,"");
@@ -434,3 +437,146 @@ const updateRoleAssign = () => {
         });
     })
 }
+
+const updateManager = () => {
+    connection.query('SELECT * FROM employee WHERE manager_id IS NOT NULL', (err, results) => {
+        
+        inquirer.prompt([
+            {
+                message: "To which employee would you like to assign a new manager?",
+                type: 'list',
+                name: 'mgerPick',
+                choices () {
+                    const pickArray = [];
+                    
+                    results.forEach(({id, first_name, last_name}) => {
+                        pickArray.push(id+": "+first_name+" "+last_name);
+                    });
+    
+                    return pickArray;
+                }
+            },
+        ])
+        .then ((answer) => {
+            mgrAssign = answer.mgerPick;
+            updateManagerThrow();
+            
+        });
+    });
+}
+
+const updateManagerThrow = () => {
+
+    connection.query('SELECT id, first_name, last_name, manager_id FROM employee WHERE manager_id IS NULL', (err, results) => {
+        
+            let mgrAssignIndex = parseInt(mgrAssign, 10);
+            console.log(mgrAssign);
+            console.log(mgrAssignIndex);
+            let mgrAssignTrim = mgrAssign.replace(mgrAssignIndex,"");
+            let mgrAssignName = mgrAssignTrim.replace(": ","");
+
+            inquirer.prompt([
+                {
+                    message: `Which manager would you like to assign to ${mgrAssignName}?`,
+                    type: 'list',
+                    name: 'mgrAssign',
+                    choices () {
+                        const AssignArray = [];
+                        
+                        results.forEach(({id, first_name, last_name}) => {
+                            AssignArray.push(id+": "+first_name+" "+last_name);
+                        });
+        
+                        return AssignArray;
+                    }
+                }
+            ])
+            .then ((answer) => {
+                let newManager = answer.mgrAssign;
+                let newManagerIndex = parseInt(newManager);
+                let newManagerTrim = newManager.replace(newManagerIndex,"");
+                let newManagerName = newManagerTrim.replace(": ","");
+
+                connection.query(`UPDATE employee SET manager_id='${newManagerIndex}' WHERE id='${mgrAssignIndex}'`, (err, results) => {
+                console.log('----------------------------------------------------------');
+                console.log(`${mgrAssignName}'s manager has been updated to: ${newManagerName}.`)
+                console.log('----------------------------------------------------------');
+                mainPrompt();
+            });
+        });
+    });
+}
+
+const updateDept = () => {
+    inquirer.prompt([
+        {
+            message: 'Would you like to add or remove a department?',
+            type: 'list',
+            name: 'yesNoSwitch',
+            choices: ['Add Department', 'Remove Department', "CANCEL"],
+        }
+    ])
+    .then ((answer) => {
+        if (answer.yesNoSwitch === 'Add Department'){
+            addDepartment();
+        }else if (answer.yesNoSwitch === 'Remove Department'){
+            removeDepartment();
+        }else{
+            console.log("Action Cancelled.");
+            mainPrompt();
+        }
+    })
+};
+
+const addDepartment = () => {
+    inquirer.prompt([
+        {
+            message: 'Please enter a name for the new department:',
+            type: 'input',
+            name: 'newDeptName'
+        }
+    ])
+    .then ((answer) => {
+        connection.query(`INSERT INTO department (dept_name) VALUES ("${answer.newDeptName}")`, (err, results) => {
+            console.log('----------------------------------------------------------');
+            console.log(`${answer.newDeptName} has been added to the database.`)
+            console.log('----------------------------------------------------------');
+            mainPrompt();
+        })
+    })
+}
+
+const removeDepartment = () => {
+        connection.query('SELECT * FROM department', (err, results) => {
+            
+            inquirer.prompt([
+                {
+                    message: 'Which department would you like to remove from the database?',
+                    type: 'list',
+                    name: 'removeDept',
+                    choices () {
+                        const deptArray = [];
+                        
+                        results.forEach(({dept_name}) => {
+                            deptArray.push(dept_name);
+                        });
+                        return deptArray;
+                    }
+                },
+            ])
+            .then((answer) => {
+                let chozeRemove = answer.removeDept;
+                connection.query(`DELETE FROM cms_db.department WHERE dept_name='${chozeRemove}'`, (err, res) => {     
+                
+                console.log('-----------------------------------------------------------------');
+                console.log(`The ${chozeRemove} department has been removed from the database.`);
+                console.log('-----------------------------------------------------------------');
+                mainPrompt();
+            })
+        })
+    })
+}
+
+// const updateNewRole = () => {
+
+// };
