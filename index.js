@@ -3,9 +3,10 @@ const inquirer = require('inquirer');
 const mysql2 = require('mysql2');
 const cTable = require('console.table');
 const { Sequelize } = require('sequelize');
+
+//! some global variables here...
 var rolePick = "";
 var mgrAssign = "";
-
 var mgrSelectID = [];
 
 
@@ -19,6 +20,7 @@ const connection = mysql2.createConnection({
 
 //! Sweet banner, right? See: https://manytools.org/hacker-tools/ascii-banner/
 
+console.log('|-----------------------------------------------------------------------|');
 console.log('|-----------------------------------------------------------------------|');
 console.log('|                                                                       |');
 console.log('| ███████╗███╗   ███╗██████╗ ██╗      ██████╗ ██╗   ██╗███████╗███████╗ |');
@@ -35,15 +37,20 @@ console.log('|        ██║   ██║  ██║██║  ██║╚█
 console.log('|        ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝         |');
 console.log('|                                                                       |');
 console.log('|-----------------------------------------------------------------------|');
+console.log('|-----------------------------------------------------------------------|');
 console.log("Welcome to YerTEAM CMS, a product of FRUOsoft!")
 
 
+//! This is the central prompt - it begins when users run the app, and after each action
+//! it is called again until users choose "quit."
 function mainPrompt(){
 
+    //! Resets the globals each time the prompt is run
     rolePick = "";
     mgrAssign = "";
     mgrSelectID = [];
 
+    //! Asks users what action they'd like to take and calls a matching function
     inquirer.prompt([
         {
             message: 'What action would you like to take?',
@@ -268,6 +275,7 @@ const addEmployee = () => {
         let newMgr = parseInt(newMgrRaw, 10);
 
         connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answers.newFirst}", "${answers.newLast}", "${newRole}", "${newMgr}")`, (err, results) => {
+            console.log(results);
             console.log(`${answers.newFirst} has been added to the database.`)
             mainPrompt();
         });
@@ -397,6 +405,9 @@ const updateRole = () => {
 }
 
 const updateRoleAssign = () => {    
+    let roleAssign = "";
+    let assignIndex = "";
+
     connection.query('SELECT * FROM position', (err, results) => {
             
             let roleInd = parseInt(rolePick, 10);
@@ -421,10 +432,8 @@ const updateRoleAssign = () => {
             ])
             .then((answer) => {
                 
-                let roleAssign = answer.roleAssign;
-                console.log(roleAssign);
-                var assignIndex = parseInt(roleAssign, 10);
-                console.log(assignIndex);
+                roleAssign = answer.roleAssign;
+                assignIndex = parseInt(roleAssign, 10);
 
                 connection.query(`UPDATE employee SET role_id='${assignIndex}' WHERE id='${roleInd}'`, (err, results) => {
                     
@@ -466,6 +475,10 @@ const updateManager = () => {
 }
 
 const updateManagerThrow = () => {
+    let newManager = "";
+    let newManagerIndex = "";
+    let newManagerTrim = "";
+    let newManagerName = "";
 
     connection.query('SELECT id, first_name, last_name, manager_id FROM employee WHERE manager_id IS NULL', (err, results) => {
         
@@ -492,10 +505,10 @@ const updateManagerThrow = () => {
                 }
             ])
             .then ((answer) => {
-                let newManager = answer.mgrAssign;
-                let newManagerIndex = parseInt(newManager);
-                let newManagerTrim = newManager.replace(newManagerIndex,"");
-                let newManagerName = newManagerTrim.replace(": ","");
+                newManager = answer.mgrAssign;
+                newManagerIndex = parseInt(newManager);
+                newManagerTrim = newManager.replace(newManagerIndex,"");
+                newManagerName = newManagerTrim.replace(": ","");
 
                 connection.query(`UPDATE employee SET manager_id='${newManagerIndex}' WHERE id='${mgrAssignIndex}'`, (err, results) => {
                 console.log('----------------------------------------------------------');
@@ -577,6 +590,113 @@ const removeDepartment = () => {
     })
 }
 
-// const updateNewRole = () => {
+const updateNewRole = () => {
+    inquirer.prompt([
+        {
+            message: 'Would you like to add or remove a role?',
+            type: 'list',
+            name: 'roleSwitch',
+            choices: ['Add Role', 'Remove Role', "CANCEL"],
+        }
+    ])
+    .then ((answer) => {
+        if (answer.roleSwitch === 'Add Role'){
+            addRole();
+        }else if (answer.roleSwitch === 'Remove Role'){
+            removeRole();
+        }else{
+            console.log("Action Cancelled.");
+            mainPrompt();
+        }
+    })    
+};
 
-// };
+const removeRole = () => {
+    connection.query('SELECT * FROM position', (err, results) => {
+        
+        inquirer.prompt([
+            {
+                message: 'Which role would you like to remove from the database?',
+                type: 'list',
+                name: 'roleList',
+                choices () {
+                    const deptArray = [];
+                    
+                    results.forEach(({title}) => {
+                        deptArray.push(title);
+                    });
+                    return deptArray;
+                }
+            }
+        ])
+        .then((answer) => {
+            connection.query(`DELETE FROM position WHERE title='${answer.roleList}'`, (err, res) => {  
+                console.log('----------------------------------------------------------');
+                console.log(`The role of ${answer.roleList} has been removed from the database.`)
+                console.log('----------------------------------------------------------');
+                mainPrompt();       
+            })
+        })
+    })
+}
+
+const addRole = () => {
+    let roleTitle = "";
+    let roleSalary = "";
+    let roleDepartment = "";
+    let roleDepartmentIndex = "";
+    
+    connection.query('SELECT * FROM department', (err, results) => {
+        
+        inquirer.prompt([
+            {
+                message: 'Please enter a name for the new role:',
+                type: 'input',
+                name: 'newRoleName'
+            },
+            {
+                message: "Please enter a salary for this new role:",
+                type: 'input',
+                name : 'newSalary'
+            },
+            {
+                message: 'To which department will this new role belong?',
+                type: 'list',
+                name: 'newDeptRole',
+                choices () {
+                    const deptArray = [];
+                    
+                    results.forEach(({id, dept_name}) => {
+                        deptArray.push(id+": "+dept_name);
+                    });
+                    return deptArray;
+                }
+            },
+        ])
+
+        .then ((answers) => {
+
+            connection.query('SELECT * FROM position', (err, res) => {
+
+                roleTitle = answers.newRoleName;
+                roleSalary = answers.newSalary;
+                roleDepartment = answers.newDeptRole;
+                roleDepartmentIndex = parseInt(roleDepartment, 10);
+
+                console.log('roleTitle: '+roleTitle);
+                console.log('roleSalary: '+roleSalary);
+                console.log('roleDepartmentIndex: '+roleDepartmentIndex);
+
+                connection.query(`INSERT INTO position (title, salary, department_id) VALUES ("${roleTitle}", "${roleSalary}", "${roleDepartmentIndex}")`, (err, results) => {
+                
+                    console.log(res);
+                    
+                    console.log('----------------------------------------------------------');
+                    console.log(`The role of ${roleTitle} has been added to the database.`)
+                    console.log('----------------------------------------------------------');
+                    mainPrompt();
+                });
+            })
+        })
+    })
+}
